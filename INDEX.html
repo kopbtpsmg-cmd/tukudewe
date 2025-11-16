@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Self Order Warung</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .menu-item, .cart-item {
+      border: 1px solid #ccc; padding: 10px; margin: 5px 0; border-radius: 5px;
+    }
+    .btn { padding: 8px 12px; background: black; color: white; border: none; cursor: pointer; }
+    .btn-danger { background: red; }
+  </style>
+</head>
+
+<body>
+
+<h2>Menu</h2>
+<div id="menu"></div>
+
+<hr>
+
+<h2>Keranjang</h2>
+<div id="cart"></div>
+<p><strong>Total:</strong> <span id="grandTotal">0</span></p>
+
+<hr>
+
+<h3>Data Pelanggan</h3>
+<input id="pelanggan" placeholder="Nama pelanggan"><br><br>
+<textarea id="catatan" placeholder="Catatan (opsional)" rows="3"></textarea><br><br>
+
+<button class="btn" onclick="submitOrder()">Kirim Pesanan</button>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeS2Xp1PYgBgXDDbBji-N7eWKRa0M4Q-h50GE8AYJJk6-hKZ_f38pjKwCKs6JcZLPD/exec"; 
+
+let menu = [];
+let cart = [];
+
+// ===========================
+// 1. AMBIL DATA MENU
+// ===========================
+fetch(SCRIPT_URL)
+  .then(res => res.json())
+  .then(data => {
+    menu = data;
+    renderMenu();
+  });
+
+// ===========================
+// 2. TAMPILKAN MENU
+// ===========================
+function renderMenu() {
+  const container = document.getElementById("menu");
+  container.innerHTML = "";
+
+  menu.forEach(item => {
+    container.innerHTML += `
+      <div class="menu-item">
+        <strong>

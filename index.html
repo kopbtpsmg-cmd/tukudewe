@@ -3,12 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <title>Self Order Warung</title>
+
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     .menu-item, .cart-item {
-      border: 1px solid #ccc; padding: 10px; margin: 5px 0; border-radius: 5px;
+      border: 1px solid #ccc; 
+      padding: 10px; 
+      margin: 5px 0; 
+      border-radius: 5px;
     }
-    .btn { padding: 8px 12px; background: black; color: white; border: none; cursor: pointer; }
+    .btn { 
+      padding: 8px 12px; 
+      background: black; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+    }
     .btn-danger { background: red; }
   </style>
 </head>
@@ -22,19 +32,20 @@
 
 <h2>Keranjang</h2>
 <div id="cart"></div>
-<p><strong>Total:</strong> <span id="grandTotal">0</span></p>
+<p><strong>Total:</strong> Rp <span id="grandTotal">0</span></p>
 
 <hr>
 
 <h3>Data Pelanggan</h3>
-<input id="pelanggan" placeholder="Nama pelanggan"><br><br>
-<textarea id="catatan" placeholder="Catatan (opsional)" rows="3"></textarea><br><br>
+<input id="pelanggan" placeholder="Nama pelanggan" style="width:100%; padding:8px;"><br><br>
+<textarea id="catatan" placeholder="Catatan (opsional)" rows="3" style="width:100%; padding:8px;"></textarea><br><br>
 
 <button class="btn" onclick="submitOrder()">Kirim Pesanan</button>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeS2Xp1PYgBgXDDbBji-N7eWKRa0M4Q-h50GE8AYJJk6-hKZ_f38pjKwCKs6JcZLPD/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeS2Xp1PYgBgXDDbBji-N7eWKRa0M4Q-h50GE8AYJJk6-hKZ_f38pjKwCKs6JcZLPD/exec";
 
+// DATA
 let menu = [];
 let cart = [];
 
@@ -44,9 +55,11 @@ let cart = [];
 fetch(SCRIPT_URL)
   .then(res => res.json())
   .then(data => {
-    menu = data;
-    renderMenu();
-  });
+    console.log("DATA MENU:", data);
+    menu = data;          // Data dari GAS
+    renderMenu();         // Tampilkan menu
+  })
+  .catch(err => console.error("Gagal ambil menu:", err));
 
 // ===========================
 // 2. TAMPILKAN MENU
@@ -58,4 +71,108 @@ function renderMenu() {
   menu.forEach(item => {
     container.innerHTML += `
       <div class="menu-item">
-        <strong>
+        <strong>${item.name}</strong><br>
+        Harga: Rp ${item.price}<br><br>
+        <button class="btn" onclick="addToCart(${item.id})">Tambah</button>
+      </div>
+    `;
+  });
+}
+
+// ===========================
+// 3. TAMBAH KE KERANJANG
+// ===========================
+function addToCart(id) {
+  const item = menu.find(x => x.id === id);
+  if (!item) return alert("Menu tidak ditemukan!");
+
+  const exist = cart.find(x => x.id === id);
+
+  if (exist) exist.qty++;
+  else cart.push({ id: item.id, name: item.name, price: item.price, qty: 1 });
+
+  renderCart();
+}
+
+// ===========================
+// 4. TAMPILKAN KERANJANG
+// ===========================
+function renderCart() {
+  const container = document.getElementById("cart");
+  container.innerHTML = "";
+
+  cart.forEach(item => {
+    container.innerHTML += `
+      <div class="cart-item">
+        ${item.name}<br>
+        Rp ${item.price} x ${item.qty} = <strong>Rp ${item.price * item.qty}</strong><br><br>
+        <button class="btn" onclick="changeQty(${item.id}, 1)">+</button>
+        <button class="btn btn-danger" onclick="changeQty(${item.id}, -1)">-</button>
+      </div>
+    `;
+  });
+
+  // Hitung total
+  const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+  document.getElementById("grandTotal").textContent = total;
+}
+
+// ===========================
+// 5. UBAH JUMLAH / HAPUS ITEM
+// ===========================
+function changeQty(id, amount) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+
+  item.qty += amount;
+
+  if (item.qty <= 0) {
+    cart = cart.filter(i => i.id !== id);
+  }
+
+  renderCart();
+}
+
+// ===========================
+// 6. KIRIM PESANAN
+// ===========================
+function submitOrder() {
+  if (cart.length === 0) return alert("Keranjang kosong!");
+
+  const pelanggan = document.getElementById("pelanggan").value.trim();
+  const catatan = document.getElementById("catatan").value.trim();
+
+  if (!pelanggan) return alert("Nama pelanggan wajib diisi!");
+
+  const payload = {
+    pelanggan: pelanggan,
+    catatan: catatan,
+    items: cart.map(i => ({
+      name: i.name,
+      qty: i.qty,
+      price: i.price,
+      total: i.qty * i.price
+    }))
+  };
+
+  console.log("KIRIM:", payload);
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.text())
+  .then(msg => {
+    alert("Pesanan berhasil dikirim!");
+    cart = [];
+    renderCart();
+  })
+  .catch(err => {
+    console.error("Gagal kirim:", err);
+    alert("Gagal mengirim pesanan!");
+  });
+}
+</script>
+
+</body>
+</html>

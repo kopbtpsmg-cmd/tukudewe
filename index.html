@@ -154,30 +154,44 @@ function changeQty(id, amount) {
 // ===========================
 // 6. KIRIM PESANAN
 // ===========================
-function submitOrder(data) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Order");
-  const items = JSON.parse(data.items); // Array item pesanan
-  
-  const timestamp = new Date();
-  const customer = data.customer || "";
-  const note = data.note || "";
-  
-  items.forEach(item => {
-    sheet.appendRow([
-      timestamp,
-      customer,
-      item.name,
-      item.qty,
-      item.price,
-      item.total,
-      note
-    ]);
+function submitOrder() {
+  if (cart.length === 0) return alert("Keranjang masih kosong!");
+
+  const pelanggan = document.getElementById("pelanggan").value;
+  const catatan = document.getElementById("catatan").value;
+
+  const payload = {
+    pelanggan: pelanggan,
+    catatan: catatan,
+    items: cart.map(i => ({
+      name: i.name,
+      qty: i.qty,
+      price: i.price,
+      total: i.price * i.qty
+    }))
+  };
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.text())
+  .then(txt => {
+    alert("Pesanan berhasil dikirim!");
+    cart = [];
+    renderCart();
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Gagal mengirim pesanan!");
   });
 }
 </script>
 
 </body>
 </html>
+
 
 
 

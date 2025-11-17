@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Tuku Dewe</title>
+  <title>Tuku Dewe Yo</title>
 
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
@@ -154,46 +154,31 @@ function changeQty(id, amount) {
 // ===========================
 // 6. KIRIM PESANAN
 // ===========================
-function submitOrder() {
-  if (cart.length === 0) return alert("Keranjang kosong!");
-
-  const pelanggan = document.getElementById("pelanggan").value.trim();
-  const catatan = document.getElementById("catatan").value.trim();
-
-  if (!pelanggan) return alert("Nama pelanggan wajib diisi!");
-
-  const payload = {
-    pelanggan: pelanggan,
-    catatan: catatan,
-    items: cart.map(i => ({
-      name: i.name,
-      qty: i.qty,
-      price: i.price,
-      total: i.qty * i.price
-    }))
-  };
-
-  console.log("KIRIM:", payload);
-
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  })
-  .then(res => res.text())
-  .then(msg => {
-    alert("Pesanan berhasil dikirim!");
-    cart = [];
-    renderCart();
-  })
-  .catch(err => {
-    console.error("Gagal kirim:", err);
-    alert("Gagal mengirim pesanan!");
+function submitOrder(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Order");
+  const items = JSON.parse(data.items); // Array item pesanan
+  
+  const timestamp = new Date();
+  const customer = data.customer || "";
+  const note = data.note || "";
+  
+  items.forEach(item => {
+    sheet.appendRow([
+      timestamp,
+      customer,
+      item.name,
+      item.qty,
+      item.price,
+      item.total,
+      note
+    ]);
   });
 }
 </script>
 
 </body>
 </html>
+
 
 
 

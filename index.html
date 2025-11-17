@@ -82,51 +82,20 @@ let cart = [];
 // ===========================
 // 2. TAMPILKAN MENU
 // ===========================
-function renderCart() {
-  const container = document.getElementById("cart");
+function renderMenu() {
+  const container = document.getElementById("menu");
+  container.innerHTML = "";
 
-  if (cart.length === 0) {
-    container.innerHTML = "<i>Keranjang kosong</i>";
-    document.getElementById("grandTotal").textContent = 0;
-    return;
-  }
-
-  let html = `
-    <table border="1" width="100%" cellpadding="6" style="border-collapse: collapse;">
-      <tr>
-        <th>Menu</th>
-        <th>Harga</th>
-        <th>Qty</th>
-        <th>Total</th>
-        <th>Aksi</th>
-      </tr>
-  `;
-
-  cart.forEach(item => {
-    html += `
-      <tr>
-        <td>${item.name}</td>
-        <td>Rp ${item.price}</td>
-        <td>${item.qty}</td>
-        <td><strong>Rp ${item.price * item.qty}</strong></td>
-        <td>
-          <button class="btn" onclick="changeQty(${item.id}, 1)">+</button>
-          <button class="btn btn-danger" onclick="changeQty(${item.id}, -1)">-</button>
-        </td>
-      </tr>
+  menu.forEach(item => {
+    container.innerHTML += `
+      <div class="menu-item">
+        <strong>${item.name}</strong><br>
+        Harga: Rp ${item.price}<br><br>
+        <button class="btn" onclick="addToCart(${item.id})">Tambah</button>
+      </div>
     `;
   });
-
-  html += `</table>`;
-
-  container.innerHTML = html;
-
-  // Hitung total
-  const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-  document.getElementById("grandTotal").textContent = total;
 }
-
-
 // ===========================
 // 3. TAMBAH KE KERANJANG
 // ===========================
@@ -221,6 +190,7 @@ function submitOrder() {
 
 </body>
 </html>
+
 
 
 

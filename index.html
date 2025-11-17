@@ -172,11 +172,10 @@ function submitOrder() {
 
   fetch(SCRIPT_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    mode: "no-cors",       // ⬅ WAJIB
+    body: JSON.stringify(payload)   // ⬅ Tanpa headers
   })
-  .then(res => res.text())
-  .then(txt => {
+  .then(() => {
     alert("Pesanan berhasil dikirim!");
     cart = [];
     renderCart();
@@ -186,10 +185,12 @@ function submitOrder() {
     alert("Gagal mengirim pesanan!");
   });
 }
+
 </script>
 
 </body>
 </html>
+
 
 
 

@@ -1,313 +1,229 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Tuku Dewe Yo</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuku Dewe Yo - Kasir</title>
+<style>
+  body { font-family: Arial, sans-serif; margin:0; padding:20px; background:#f5f5f5; }
+  h2 { margin-top:0; }
+  
+  /* TAB BUTTON */
+  .tabs { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .tab-btn {
+    flex:1;
+    padding:10px 0;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    background:#ddd;
+    font-weight:bold;
+    text-align:center;
+  }
+  .tab-btn.active { background:black; color:white; }
 
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
+  /* MENU GRID */
+  #menu { display:grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+  .menu-item {
+    background:white; border-radius:8px; padding:10px; text-align:center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .menu-item button { margin-top:10px; width:100%; padding:8px; font-weight:bold; }
 
-    .menu-item, .cart-item {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 6px;
-    }
+  /* CART */
+  #cart { display:flex; flex-direction:column; gap:10px; }
+  .cart-item {
+    background:white; padding:10px; border-radius:8px; display:flex; justify-content:space-between;
+    align-items:center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  .cart-info { flex:1; }
+  .cart-buttons button { margin-left:5px; padding:5px 10px; font-weight:bold; border-radius:5px; border:none; cursor:pointer; }
+  .btn-danger { background:red; color:white; }
+  .btn { background:black; color:white; }
 
-    .btn {
-      padding: 8px 12px;
-      background: black;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
+  /* PAYMENT CONFIRM */
+  #confirmPage { display:none; background:#fff; padding:15px; margin-top:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+  input, select, textarea { width:100%; padding:8px; margin-top:5px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; }
 
-    .btn-danger { background: red; }
-
-    .tab-btn {
-      padding: 10px 16px;
-      border: none;
-      cursor: pointer;
-      background: #ddd;
-      font-weight: bold;
-      border-radius: 5px;
-    }
-
-    .tab-btn.active {
-      background: black;
-      color: white;
-    }
-
-    #confirmPage {
-      display:none;
-      padding:20px;
-      border:1px solid #aaa;
-      margin-top:20px;
-      border-radius:10px;
-      background:#f8f8f8;
-    }
-  </style>
+  /* RESPONSIVE TOTAL */
+  #grandTotal { font-size:1.2em; font-weight:bold; }
+</style>
 </head>
-
 <body>
 
-<!-- ========= TAB BUTTON ========= -->
-<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+<div class="tabs">
   <button id="btnMenu" class="tab-btn active" onclick="showTab('menuTab')">Menu</button>
   <button id="btnCart" class="tab-btn" onclick="showTab('cartTab')">Keranjang</button>
 </div>
 
-<!-- ========= HALAMAN MENU ========= -->
 <div id="menuTab">
   <h2>Daftar Menu</h2>
   <div id="menu"></div>
 </div>
 
-<hr>
-
-<!-- ========= HALAMAN KERANJANG ========= -->
 <div id="cartTab" style="display:none;">
   <h2>Keranjang</h2>
-
   <div id="cart"></div>
-
   <p><strong>Total:</strong> Rp <span id="grandTotal">0</span></p>
 
-  <hr>
-
   <h3>Metode Pembayaran</h3>
-  <select id="paymentMethod" style="padding:8px; width:100%;">
+  <select id="paymentMethod">
     <option value="cash">CASH</option>
     <option value="qris">QRIS</option>
   </select>
 
   <h3>Data Pelanggan</h3>
-  <input id="pelanggan" placeholder="Nama pelanggan" style="width:100%; padding:8px;"><br><br>
-
-  <textarea id="catatan" placeholder="Catatan (opsional)" rows="3" style="width:100%; padding:8px;"></textarea><br><br>
+  <input id="pelanggan" placeholder="Nama pelanggan">
+  <textarea id="catatan" placeholder="Catatan (opsional)" rows="3"></textarea>
 
   <button class="btn" onclick="submitOrder()">Kirim Pesanan</button>
 
-  <!-- ===== HALAMAN KONFIRMASI PEMBAYARAN ===== -->
   <div id="confirmPage">
     <h3 id="confirmText"></h3>
-
-    <input id="kodeKasir"
-           placeholder="Masukkan kode kasir"
-           style="padding:10px; width:100%; margin-top:10px; border:1px solid #ccc; border-radius:5px;">
-
-    <br><br>
-
-    <button class="btn" onclick="confirmPayment()" style="width:100%;">Konfirmasi</button>
+    <input id="kodeKasir" placeholder="Masukkan kode kasir">
+    <button class="btn" onclick="confirmPayment()">Konfirmasi Pembayaran</button>
   </div>
 </div>
 
-
-<!-- ============================== -->
-<!--  JAVASCRIPT  -->
-<!-- ============================== -->
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgzee4ueA6Zxe5YGMUSNGG8Lg_ZlBxFfuLuDra5E-TFk8V_cf5ZtGdjGhJOsqacuVHBQ/exec";  // <== GANTI WAJIB
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgzee4ueA6Zxe5YGMUSNGG8Lg_ZlBxFfuLuDra5E-TFk8V_cf5ZtGdjGhJOsqacuVHBQ/exec";
 
 let menu = [];
 let cart = [];
-let lastOrderId = "";   // untuk update pembayaran
+let lastOrderId = "";
 
-
-// ===========================
-// 1. AMBIL MENU DARI GAS
-// ===========================
+// FETCH MENU
 fetch(SCRIPT_URL)
-  .then(res => res.text())
-  .then(txt => {
-    let data;
-    try { data = JSON.parse(txt); }
-    catch (e) { return console.error("JSON rusak:", e); }
+.then(res => res.json())
+.then(data => { menu = data; renderMenu(); })
+.catch(err => console.error("Gagal ambil menu:", err));
 
-    menu = data;
-    renderMenu();
-  });
-
-
-// ===========================
-// 2. TAMPILKAN MENU
-// ===========================
+// RENDER MENU GRID
 function renderMenu() {
   const box = document.getElementById("menu");
   box.innerHTML = "";
-
   menu.forEach(item => {
     box.innerHTML += `
       <div class="menu-item">
         <strong>${item.name}</strong><br>
-        Harga: Rp ${item.price}<br><br>
-        <button class="btn" onclick="addToCart(${item.id})">Tambah</button>
-      </div>
-    `;
+        Rp ${item.price}<br>
+        <button onclick="addToCart(${item.id})">Tambah</button>
+      </div>`;
   });
 }
 
-
-// ===========================
-// 3. TAMBAH KE KERANJANG
-// ===========================
+// ADD TO CART
 function addToCart(id) {
   const item = menu.find(m => m.id === id);
-  if (!item) return;
-
+  if(!item) return;
   const exist = cart.find(c => c.id === id);
-  if (exist) exist.qty++;
-  else cart.push({ ...item, qty: 1 });
-
+  if(exist) exist.qty++;
+  else cart.push({...item, qty:1});
   renderCart();
 }
 
-
-// ===========================
-// 4. TAMPILKAN KERANJANG
-// ===========================
+// RENDER CART
 function renderCart() {
   const box = document.getElementById("cart");
   box.innerHTML = "";
-
   cart.forEach(item => {
     box.innerHTML += `
       <div class="cart-item">
-        ${item.name}<br>
-        Rp ${item.price} × ${item.qty}
-        = <strong>Rp ${item.price * item.qty}</strong><br><br>
-
-        <button class="btn" onclick="changeQty(${item.id}, 1)">+</button>
-        <button class="btn btn-danger" onclick="changeQty(${item.id}, -1)">-</button>
-      </div>
-    `;
+        <div class="cart-info">${item.name}<br>Rp ${item.price} × ${item.qty} = <strong>Rp ${(item.price*item.qty).toLocaleString()}</strong></div>
+        <div class="cart-buttons">
+          <button onclick="changeQty(${item.id},1)">+</button>
+          <button class="btn-danger" onclick="changeQty(${item.id},-1)">-</button>
+        </div>
+      </div>`;
   });
-
-  const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+  const total = cart.reduce((a,b)=>a+b.price*b.qty,0);
   document.getElementById("grandTotal").innerText = total.toLocaleString();
 }
 
-
-// ===========================
-// 5. UBAH JUMLAH ITEM
-// ===========================
-function changeQty(id, amount) {
-  const item = cart.find(c => c.id === id);
-  if (!item) return;
-
-  item.qty += amount;
-  if (item.qty <= 0) cart = cart.filter(c => c.id !== id);
-
+// CHANGE QTY
+function changeQty(id,amt){
+  const item = cart.find(c=>c.id===id);
+  if(!item) return;
+  item.qty+=amt;
+  if(item.qty<=0) cart=cart.filter(c=>c.id!==id);
   renderCart();
 }
 
+// SUBMIT ORDER
+function submitOrder(){
+  if(cart.length===0) return alert("Keranjang kosong!");
+  const pelanggan=document.getElementById("pelanggan").value.trim()||"Tamu";
+  const catatan=document.getElementById("catatan").value.trim();
+  const metode=document.getElementById("paymentMethod").value;
 
-// ===========================
-// 6. KIRIM ORDER
-// ===========================
-function submitOrder() {
-  if (cart.length === 0) return alert("Keranjang kosong!");
+  for(let i=0;i<cart.length;i++){
+    if(!cart[i].name||cart[i].qty<=0||cart[i].price<=0){
+      return alert(`Item ke-${i+1} tidak valid`);
+    }
+  }
 
-  const pelanggan = document.getElementById("pelanggan").value || "Tamu";
-  const catatan = document.getElementById("catatan").value || "";
-  const metode = document.getElementById("paymentMethod").value;
-
-  const orderId = generateOrderId();
+  const orderId = "ORD-"+Date.now()+"-"+Math.floor(Math.random()*9999);
   lastOrderId = orderId;
 
-  const payload = {
-    pelanggan,
-    catatan,
-    metode,
-    keterangan: "",
-    orderId,
-    items: cart.map(i => ({
-      name: i.name,
-      qty: i.qty,
-      price: i.price,
-      total: i.price * i.qty
-    }))
-  };
+  const payload={ pelanggan, catatan, metode, keterangan:"", orderId,
+    items:cart.map(i=>({name:i.name, qty:i.qty, price:i.price, total:i.price*i.qty})) };
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: JSON.stringify(payload)
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify(payload),
+    headers:{'Content-Type':'application/json'}
   })
-  .then(() => {
-    const totalBelanja = cart.reduce((a, b) => a + b.price * b.qty, 0);
-    showPaymentConfirmation(totalBelanja, metode);
-  });
-}
-
-
-// ===========================
-// 7. TAMPILKAN KONFIRMASI
-// ===========================
-function showPaymentConfirmation(total, metode) {
-  document.getElementById("confirmText").innerHTML =
-    `Harap bayar <b>${metode.toUpperCase()}</b> sebesar <b>Rp ${total.toLocaleString()}</b>`;
-
-  document.getElementById("confirmPage").style.display = "block";
-
-  window.scrollTo(0, document.body.scrollHeight);
-}
-
-
-// ===========================
-// 8. KONFIRMASI PEMBAYARAN
-// ===========================
-function confirmPayment() {
-  const kode = document.getElementById("kodeKasir").value.trim();
-  if (!kode) return alert("Kode kasir wajib diisi!");
-
-  const payload = {
-    aksi: "update_status",
-    orderId: lastOrderId,
-    kodeKasir: kode
-  };
-
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: JSON.stringify(payload)
+  .then(res=>res.json())
+  .then(data=>{
+    if(data.status==="OK"){
+      const totalBelanja = cart.reduce((a,b)=>a+b.price*b.qty,0);
+      showPaymentConfirmation(totalBelanja,metode);
+    } else alert("Error: "+data.msg);
   })
-  .then(() => {
-    alert("Pembayaran berhasil dikonfirmasi!");
-    document.getElementById("confirmPage").style.display = "none";
-    cart = [];
-    renderCart();
-  });
+  .catch(err=>alert("Gagal kirim order: "+err));
 }
 
-
-// ===========================
-// 9. GENERATE ORDER ID
-// ===========================
-function generateOrderId() {
-  return "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 9999);
+// SHOW PAYMENT CONFIRM
+function showPaymentConfirmation(total, metode){
+  document.getElementById("confirmText").innerHTML=`Harap bayar <b>${metode.toUpperCase()}</b> sebesar <b>Rp ${total.toLocaleString()}</b>`;
+  document.getElementById("confirmPage").style.display="block";
+  window.scrollTo(0,document.body.scrollHeight);
 }
 
+// CONFIRM PAYMENT
+function confirmPayment(){
+  const kode=document.getElementById("kodeKasir").value.trim();
+  if(!kode) return alert("Kode kasir wajib diisi!");
+  const payload={ aksi:"update_status", orderId:lastOrderId, kodeKasir:kode };
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    body:JSON.stringify(payload),
+    headers:{'Content-Type':'application/json'}
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    if(data.status==="UPDATED"){
+      alert("Pembayaran berhasil dikonfirmasi!");
+      document.getElementById("confirmPage").style.display="none";
+      cart=[]; renderCart();
+      document.getElementById("pelanggan").value="";
+      document.getElementById("catatan").value="";
+    } else alert("Error: "+data.msg);
+  })
+  .catch(err=>alert("Gagal konfirmasi: "+err));
+}
 
-// ===========================
-// 10. TAB MENU / KERANJANG
-// ===========================
-function showTab(id) {
-  document.getElementById("menuTab").style.display = "none";
-  document.getElementById("cartTab").style.display = "none";
-
-  document.getElementById(id).style.display = "block";
-
+// TAB
+function showTab(id){
+  document.getElementById("menuTab").style.display="none";
+  document.getElementById("cartTab").style.display="none";
+  document.getElementById(id).style.display="block";
   document.getElementById("btnMenu").classList.remove("active");
   document.getElementById("btnCart").classList.remove("active");
-
-  if (id === "menuTab") document.getElementById("btnMenu").classList.add("active");
+  if(id==="menuTab") document.getElementById("btnMenu").classList.add("active");
   else document.getElementById("btnCart").classList.add("active");
 }
-
 </script>
 
 </body>
 </html>
-

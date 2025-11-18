@@ -221,10 +221,11 @@ function submitOrder() {
 
   // POST tanpa header agar tidak memicu preflight CORS
   fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",           // WAJIB -> hindari preflight
-    body: JSON.stringify(payload)
-  })
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+})
+
   .then(() => {
     // tidak bisa baca response karena no-cors, kita anggap sukses
     // tampilkan halaman konfirmasi bayar (sesuai metode)
@@ -280,11 +281,11 @@ function confirmPayment(orderIdFromOrderPage) {
     kodeKasir: kode
   };
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",  // WAJIB, agar tidak memicu preflight
-    body: JSON.stringify(payload)
-  })
+ fetch(SCRIPT_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+})
   .then(() => {
     alert("Konfirmasi berhasil — status pembayaran diubah menjadi SUDAH.");
     // sembunyikan popup / reset order
@@ -303,6 +304,7 @@ function confirmPayment(orderIdFromOrderPage) {
 
 </body>
 </html>
+
 
 
 

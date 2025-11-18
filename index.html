@@ -6,43 +6,59 @@
 
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
+
     .menu-item, .cart-item {
-      border: 1px solid #ccc; 
-      padding: 10px; 
-      margin: 5px 0; 
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 6px;
+    }
+
+    .btn {
+      padding: 8px 12px;
+      background: black;
+      color: white;
+      border: none;
+      cursor: pointer;
       border-radius: 5px;
     }
-    .btn { 
-      padding: 8px 12px; 
-      background: black; 
-      color: white; 
-      border: none; 
-      cursor: pointer; 
-    }
+
     .btn-danger { background: red; }
+
     .tab-btn {
-  padding: 10px 16px;
-  border: none;
-  cursor: pointer;
-  background: #ddd;
-  font-weight: bold;
-  border-radius: 5px;
-}
+      padding: 10px 16px;
+      border: none;
+      cursor: pointer;
+      background: #ddd;
+      font-weight: bold;
+      border-radius: 5px;
+    }
 
-.tab-btn.active {
-  background: black;
-  color: white;
-}
+    .tab-btn.active {
+      background: black;
+      color: white;
+    }
 
+    #confirmPage {
+      display:none;
+      padding:20px;
+      border:1px solid #aaa;
+      margin-top:20px;
+      border-radius:10px;
+      background:#f8f8f8;
+    }
   </style>
 </head>
 
 <body>
-<<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+
+<!-- ========= TAB BUTTON ========= -->
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
   <button id="btnMenu" class="tab-btn active" onclick="showTab('menuTab')">Menu</button>
   <button id="btnCart" class="tab-btn" onclick="showTab('cartTab')">Keranjang</button>
 </div>
 
+<!-- ========= HALAMAN MENU ========= -->
 <div id="menuTab">
   <h2>Daftar Menu</h2>
   <div id="menu"></div>
@@ -50,86 +66,79 @@
 
 <hr>
 
+<!-- ========= HALAMAN KERANJANG ========= -->
 <div id="cartTab" style="display:none;">
   <h2>Keranjang</h2>
+
   <div id="cart"></div>
+
   <p><strong>Total:</strong> Rp <span id="grandTotal">0</span></p>
-<hr>
+
+  <hr>
 
   <h3>Metode Pembayaran</h3>
-<select id="paymentMethod" style="padding:8px; width:100%;">
-  <option value="cash">CASH</option>
-  <option value="qris">QRIS</option>
-</select>
+  <select id="paymentMethod" style="padding:8px; width:100%;">
+    <option value="cash">CASH</option>
+    <option value="qris">QRIS</option>
+  </select>
 
-<h3>Data Pelanggan</h3>
-<input id="pelanggan" placeholder="Nama pelanggan" style="width:100%; padding:8px;"><br><br>
-<textarea id="catatan" placeholder="Catatan (opsional)" rows="3" style="width:100%; padding:8px;"></textarea><br><br>
+  <h3>Data Pelanggan</h3>
+  <input id="pelanggan" placeholder="Nama pelanggan" style="width:100%; padding:8px;"><br><br>
 
-<button class="btn" onclick="submitOrder()">Kirim Pesanan</button>
+  <textarea id="catatan" placeholder="Catatan (opsional)" rows="3" style="width:100%; padding:8px;"></textarea><br><br>
 
-<!-- ===== HALAMAN KONFIRMASI PEMBAYARAN ===== -->
-<div id="confirmPage" 
-     style="display:none; padding:20px; border:1px solid #aaa; margin-top:20px; border-radius:10px; background:#f8f8f8;">
-  
-  <h3 id="confirmText"></h3>
+  <button class="btn" onclick="submitOrder()">Kirim Pesanan</button>
 
-  <input id="kodeKasir" 
-         placeholder="Masukkan kode kasir" 
-         style="padding:10px; width:100%; margin-top:10px; border:1px solid #ccc; border-radius:5px;">
-  
-  <br><br>
+  <!-- ===== HALAMAN KONFIRMASI PEMBAYARAN ===== -->
+  <div id="confirmPage">
+    <h3 id="confirmText"></h3>
 
-  <button class="btn" onclick="confirmPayment()" style="width:100%;">Konfirmasi</button>
+    <input id="kodeKasir"
+           placeholder="Masukkan kode kasir"
+           style="padding:10px; width:100%; margin-top:10px; border:1px solid #ccc; border-radius:5px;">
 
+    <br><br>
+
+    <button class="btn" onclick="confirmPayment()" style="width:100%;">Konfirmasi</button>
+  </div>
 </div>
 
-<script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6O_wIJBO7dAZ0Q6pndKyIA-TYVS1uDJjb1rAC-_mpOW5O3LI3Le48qXluymBNYo9-EQ/exec";
 
-// DATA
+<!-- ============================== -->
+<!--  JAVASCRIPT  -->
+<!-- ============================== -->
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLTJ6Ujf060PI_RRno_XnM-PngyBhKQlL6BvS5tmCcYUyzY-UP20lKD-ueiI7jtAA6Cg/exec";  // <== GANTI WAJIB
+
 let menu = [];
 let cart = [];
+let lastOrderId = "";   // untuk update pembayaran
+
 
 // ===========================
-// 1. AMBIL DATA MENU
+// 1. AMBIL MENU DARI GAS
 // ===========================
-// fetch(SCRIPT_URL)
-//  .then(res => res.json())
-//  .then(data => {
- //   console.log("DATA MENU:", data);
-//    menu = data;          // Data dari GAS
-//    renderMenu();         // Tampilkan menu
-//  })
-//  .catch(err => console.error("Gagal ambil menu:", err)); //
-//
- fetch(SCRIPT_URL)
+fetch(SCRIPT_URL)
   .then(res => res.text())
   .then(txt => {
-    console.log("RAW RESPONSE:", txt);
-
     let data;
-    try {
-      data = JSON.parse(txt);
-    } catch (err) {
-      console.error("Gagal parse JSON:", err);
-      return;
-    }
+    try { data = JSON.parse(txt); }
+    catch (e) { return console.error("JSON rusak:", e); }
 
-    console.log("DATA MENU:", data);
     menu = data;
     renderMenu();
-  })
-  .catch(err => console.error("Gagal ambil menu:", err)); 
+  });
+
+
 // ===========================
 // 2. TAMPILKAN MENU
 // ===========================
 function renderMenu() {
-  const container = document.getElementById("menu");
-  container.innerHTML = "";
+  const box = document.getElementById("menu");
+  box.innerHTML = "";
 
   menu.forEach(item => {
-    container.innerHTML += `
+    box.innerHTML += `
       <div class="menu-item">
         <strong>${item.name}</strong><br>
         Harga: Rp ${item.price}<br><br>
@@ -138,79 +147,81 @@ function renderMenu() {
     `;
   });
 }
+
+
 // ===========================
 // 3. TAMBAH KE KERANJANG
 // ===========================
 function addToCart(id) {
-  const item = menu.find(x => x.id === id);
-  if (!item) return alert("Menu tidak ditemukan!");
+  const item = menu.find(m => m.id === id);
+  if (!item) return;
 
-  const exist = cart.find(x => x.id === id);
-
+  const exist = cart.find(c => c.id === id);
   if (exist) exist.qty++;
-  else cart.push({ id: item.id, name: item.name, price: item.price, qty: 1 });
+  else cart.push({ ...item, qty: 1 });
 
   renderCart();
 }
+
 
 // ===========================
 // 4. TAMPILKAN KERANJANG
 // ===========================
 function renderCart() {
-  const container = document.getElementById("cart");
-  container.innerHTML = "";
+  const box = document.getElementById("cart");
+  box.innerHTML = "";
 
   cart.forEach(item => {
-    container.innerHTML += `
+    box.innerHTML += `
       <div class="cart-item">
         ${item.name}<br>
-        Rp ${item.price} x ${item.qty} = <strong>Rp ${item.price * item.qty}</strong><br><br>
+        Rp ${item.price} × ${item.qty}
+        = <strong>Rp ${item.price * item.qty}</strong><br><br>
+
         <button class="btn" onclick="changeQty(${item.id}, 1)">+</button>
         <button class="btn btn-danger" onclick="changeQty(${item.id}, -1)">-</button>
       </div>
     `;
   });
 
-  // Hitung total
-  const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-  document.getElementById("grandTotal").textContent = total;
+  const total = cart.reduce((a, b) => a + b.price * b.qty, 0);
+  document.getElementById("grandTotal").innerText = total.toLocaleString();
 }
 
+
 // ===========================
-// 5. UBAH JUMLAH / HAPUS ITEM
+// 5. UBAH JUMLAH ITEM
 // ===========================
 function changeQty(id, amount) {
-  const item = cart.find(i => i.id === id);
+  const item = cart.find(c => c.id === id);
   if (!item) return;
 
   item.qty += amount;
-
-  if (item.qty <= 0) {
-    cart = cart.filter(i => i.id !== id);
-  }
+  if (item.qty <= 0) cart = cart.filter(c => c.id !== id);
 
   renderCart();
 }
 
+
 // ===========================
-// 6. KIRIM PESANAN
+// 6. KIRIM ORDER
 // ===========================
 function submitOrder() {
-  if (cart.length === 0) return alert("Keranjang masih kosong!");
+  if (cart.length === 0) return alert("Keranjang kosong!");
 
   const pelanggan = document.getElementById("pelanggan").value || "Tamu";
   const catatan = document.getElementById("catatan").value || "";
-  const metode = document.getElementById("paymentMethod").value || "CASH";
-  const keterangan = ""; // optional, bisa diisi jika perlu
+  const metode = document.getElementById("paymentMethod").value;
 
   const orderId = generateOrderId();
+  lastOrderId = orderId;
 
   const payload = {
-    pelanggan: pelanggan,
-    catatan: catatan,
-    metode: metode,
-    keterangan: keterangan,
-    orderId: orderId,
+    pelanggan,
+    catatan,
+    metode,
+    keterangan: "",
+    orderId,
     items: cart.map(i => ({
       name: i.name,
       qty: i.qty,
@@ -219,110 +230,83 @@ function submitOrder() {
     }))
   };
 
-  // POST tanpa header agar tidak memicu preflight CORS
   fetch(SCRIPT_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload)
-})
-
-  .then(() => {
-    // tidak bisa baca response karena no-cors, kita anggap sukses
-    // tampilkan halaman konfirmasi bayar (sesuai metode)
-    const totalBelanja = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-showPaymentConfirmation(totalBelanja, metode);
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify(payload)
   })
-  .catch(err => {
-    console.error("Gagal kirim order:", err);
-    alert("Gagal mengirim pesanan! Cek koneksi.");
+  .then(() => {
+    const totalBelanja = cart.reduce((a, b) => a + b.price * b.qty, 0);
+    showPaymentConfirmation(totalBelanja, metode);
   });
 }
+
+
+// ===========================
+// 7. TAMPILKAN KONFIRMASI
+// ===========================
 function showPaymentConfirmation(total, metode) {
   document.getElementById("confirmText").innerHTML =
     `Harap bayar <b>${metode.toUpperCase()}</b> sebesar <b>Rp ${total.toLocaleString()}</b>`;
 
   document.getElementById("confirmPage").style.display = "block";
+
   window.scrollTo(0, document.body.scrollHeight);
 }
-  
-function generateOrderId() {
-  // contoh id unik: ORD-<timestamp>-<random>
-  return "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
-} 
-  
-  // =======TAB AKTIF===========
-function showTab(tabID) {
-  // Sembunyikan semua tab
-  document.getElementById("menuTab").style.display = "none";
-  document.getElementById("cartTab").style.display = "none";
 
-  // Tampilkan tab yang dipilih
-  document.getElementById(tabID).style.display = "block";
 
-  // Reset semua tab button
-  document.getElementById("btnMenu").classList.remove("active");
-  document.getElementById("btnCart").classList.remove("active");
-
-  // Tandai tombol aktif
-  if (tabID === "menuTab") {
-    document.getElementById("btnMenu").classList.add("active");
-  } else {
-    document.getElementById("btnCart").classList.add("active");
-  }
-}
-  
-function confirmPayment(orderIdFromOrderPage) {
+// ===========================
+// 8. KONFIRMASI PEMBAYARAN
+// ===========================
+function confirmPayment() {
   const kode = document.getElementById("kodeKasir").value.trim();
-  if (!kode) return alert("Kode kasir wajib diisi.");
+  if (!kode) return alert("Kode kasir wajib diisi!");
 
   const payload = {
     aksi: "update_status",
-    orderId: orderIdFromOrderPage,
+    orderId: lastOrderId,
     kodeKasir: kode
   };
 
- fetch(SCRIPT_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload)
-})
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify(payload)
+  })
   .then(() => {
-    alert("Konfirmasi berhasil — status pembayaran diubah menjadi SUDAH.");
-    // sembunyikan popup / reset order
+    alert("Pembayaran berhasil dikonfirmasi!");
     document.getElementById("confirmPage").style.display = "none";
     cart = [];
     renderCart();
-  })
-  .catch(err => {
-    console.error("Gagal konfirmasi:", err);
-    alert("Gagal konfirmasi pembayaran!");
   });
 }
 
+
+// ===========================
+// 9. GENERATE ORDER ID
+// ===========================
+function generateOrderId() {
+  return "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 9999);
+}
+
+
+// ===========================
+// 10. TAB MENU / KERANJANG
+// ===========================
+function showTab(id) {
+  document.getElementById("menuTab").style.display = "none";
+  document.getElementById("cartTab").style.display = "none";
+
+  document.getElementById(id).style.display = "block";
+
+  document.getElementById("btnMenu").classList.remove("active");
+  document.getElementById("btnCart").classList.remove("active");
+
+  if (id === "menuTab") document.getElementById("btnMenu").classList.add("active");
+  else document.getElementById("btnCart").classList.add("active");
+}
 
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

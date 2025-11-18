@@ -24,16 +24,22 @@
 </head>
 
 <body>
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+  <button class="btn" onclick="showTab('menuTab')">Menu</button>
+  <button class="btn" onclick="showTab('cartTab')">Keranjang</button>
+</div>
 
-<h2>Daftar Menu</h2>
-<div id="menu"></div>
+<div id="menuTab">
+  <h2>Daftar Menu</h2>
+  <div id="menu"></div>
+</div>
 
 <hr>
 
-<h2>Keranjang</h2>
-<div id="cart"></div>
-<p><strong>Total:</strong> Rp <span id="grandTotal">0</span></p>
-
+<div id="cartTab" style="display:none;">
+  <h2>Keranjang</h2>
+  <div id="cart"></div>
+  <p><strong>Total:</strong> Rp <span id="grandTotal">0</span></p>
 <hr>
 
 <h3>Data Pelanggan</h3>
@@ -41,6 +47,7 @@
 <textarea id="catatan" placeholder="Catatan (opsional)" rows="3" style="width:100%; padding:8px;"></textarea><br><br>
 
 <button class="btn" onclick="submitOrder()">Kirim Pesanan</button>
+
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw04DS05QGgW3X4W5f4E_N64VHB7lgzD437zpVaOGN4SM7--GPbNtpmcwVi03Nh6Cy_Sg/exec";
@@ -185,11 +192,18 @@ function submitOrder() {
     alert("Gagal mengirim pesanan!");
   });
 }
+function showTab(tabID) {
+  document.getElementById("menuTab").style.display = "none";
+  document.getElementById("cartTab").style.display = "none";
+
+  document.getElementById(tabID).style.display = "block";
+}
 
 </script>
 
 </body>
 </html>
+
 
 
 

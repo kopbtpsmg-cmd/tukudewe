@@ -56,12 +56,33 @@
   <p><strong>Total:</strong> Rp <span id="grandTotal">0</span></p>
 <hr>
 
+  <h3>Metode Pembayaran</h3>
+<select id="paymentMethod" style="padding:8px; width:100%;">
+  <option value="cash">CASH</option>
+  <option value="qris">QRIS</option>
+</select>
+
 <h3>Data Pelanggan</h3>
 <input id="pelanggan" placeholder="Nama pelanggan" style="width:100%; padding:8px;"><br><br>
 <textarea id="catatan" placeholder="Catatan (opsional)" rows="3" style="width:100%; padding:8px;"></textarea><br><br>
 
 <button class="btn" onclick="submitOrder()">Kirim Pesanan</button>
 
+<!-- ===== HALAMAN KONFIRMASI PEMBAYARAN ===== -->
+<div id="confirmPage" 
+     style="display:none; padding:20px; border:1px solid #aaa; margin-top:20px; border-radius:10px; background:#f8f8f8;">
+  
+  <h3 id="confirmText"></h3>
+
+  <input id="kodeKasir" 
+         placeholder="Masukkan kode kasir" 
+         style="padding:10px; width:100%; margin-top:10px; border:1px solid #ccc; border-radius:5px;">
+  
+  <br><br>
+
+  <button class="btn" onclick="confirmPayment()" style="width:100%;">Konfirmasi</button>
+
+</div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw04DS05QGgW3X4W5f4E_N64VHB7lgzD437zpVaOGN4SM7--GPbNtpmcwVi03Nh6Cy_Sg/exec";
@@ -177,12 +198,19 @@ function changeQty(id, amount) {
 function submitOrder() {
   if (cart.length === 0) return alert("Keranjang masih kosong!");
 
-  const pelanggan = document.getElementById("pelanggan").value;
-  const catatan = document.getElementById("catatan").value;
+  const pelanggan = document.getElementById("pelanggan").value || "Tamu";
+  const catatan = document.getElementById("catatan").value || "";
+  const metode = document.getElementById("paymentMethod").value || "CASH";
+  const keterangan = ""; // optional, bisa diisi jika perlu
+
+  const orderId = generateOrderId();
 
   const payload = {
     pelanggan: pelanggan,
     catatan: catatan,
+    metode: metode,
+    keterangan: keterangan,
+    orderId: orderId,
     items: cart.map(i => ({
       name: i.name,
       qty: i.qty,
@@ -191,21 +219,39 @@ function submitOrder() {
     }))
   };
 
+  // POST tanpa header agar tidak memicu preflight CORS
   fetch(SCRIPT_URL, {
     method: "POST",
-    mode: "no-cors",       // ⬅ WAJIB
-    body: JSON.stringify(payload)   // ⬅ Tanpa headers
+    mode: "no-cors",           // WAJIB -> hindari preflight
+    body: JSON.stringify(payload)
   })
   .then(() => {
-    alert("Pesanan berhasil dikirim!");
-    cart = [];
-    renderCart();
+    // tidak bisa baca response karena no-cors, kita anggap sukses
+    // tampilkan halaman konfirmasi bayar (sesuai metode)
+    showPaymentConfirmation(orderId, payload.metode, payload.items.reduce((s,i)=>s+i.total,0));
   })
   .catch(err => {
-    console.error(err);
-    alert("Gagal mengirim pesanan!");
+    console.error("Gagal kirim order:", err);
+    alert("Gagal mengirim pesanan! Cek koneksi.");
   });
 }
+
+  // tampilkan halaman konfirmasi
+  document.getElementById("confirmText").innerHTML =
+    `Harap bayar <b>${method.toUpperCase()}</b> sebesar <b>Rp ${total}</b>`;
+
+  document.getElementById("confirmPage").style.display = "block";
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+
+  
+function generateOrderId() {
+  // contoh id unik: ORD-<timestamp>-<random>
+  return "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
+}  
+  
+  // =======TAB AKTIF===========
 function showTab(tabID) {
   // Sembunyikan semua tab
   document.getElementById("menuTab").style.display = "none";
@@ -225,12 +271,41 @@ function showTab(tabID) {
     document.getElementById("btnCart").classList.add("active");
   }
 }
+  
+function confirmPayment(orderIdFromOrderPage) {
+  const kode = document.getElementById("kodeKasir").value.trim();
+  if (!kode) return alert("Kode kasir wajib diisi.");
+
+  const payload = {
+    aksi: "update_status",
+    orderId: orderIdFromOrderPage,
+    kodeKasir: kode
+  };
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",  // WAJIB, agar tidak memicu preflight
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    alert("Konfirmasi berhasil — status pembayaran diubah menjadi SUDAH.");
+    // sembunyikan popup / reset order
+    document.getElementById("confirmPage").style.display = "none";
+    cart = [];
+    renderCart();
+  })
+  .catch(err => {
+    console.error("Gagal konfirmasi:", err);
+    alert("Gagal konfirmasi pembayaran!");
+  });
+}
 
 
 </script>
 
 </body>
 </html>
+
 
 
 

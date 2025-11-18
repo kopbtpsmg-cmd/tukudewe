@@ -20,13 +20,27 @@
       cursor: pointer; 
     }
     .btn-danger { background: red; }
+    .tab-btn {
+  padding: 10px 16px;
+  border: none;
+  cursor: pointer;
+  background: #ddd;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.tab-btn.active {
+  background: black;
+  color: white;
+}
+
   </style>
 </head>
 
 <body>
-<div style="display: flex; gap: 10px; margin-bottom: 20px;">
-  <button class="btn" onclick="showTab('menuTab')">Menu</button>
-  <button class="btn" onclick="showTab('cartTab')">Keranjang</button>
+<<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+  <button id="btnMenu" class="tab-btn active" onclick="showTab('menuTab')">Menu</button>
+  <button id="btnCart" class="tab-btn" onclick="showTab('cartTab')">Keranjang</button>
 </div>
 
 <div id="menuTab">
@@ -193,16 +207,31 @@ function submitOrder() {
   });
 }
 function showTab(tabID) {
+  // Sembunyikan semua tab
   document.getElementById("menuTab").style.display = "none";
   document.getElementById("cartTab").style.display = "none";
 
+  // Tampilkan tab yang dipilih
   document.getElementById(tabID).style.display = "block";
+
+  // Reset semua tab button
+  document.getElementById("btnMenu").classList.remove("active");
+  document.getElementById("btnCart").classList.remove("active");
+
+  // Tandai tombol aktif
+  if (tabID === "menuTab") {
+    document.getElementById("btnMenu").classList.add("active");
+  } else {
+    document.getElementById("btnCart").classList.add("active");
+  }
 }
+
 
 </script>
 
 </body>
 </html>
+
 
 
 

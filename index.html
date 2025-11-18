@@ -242,14 +242,14 @@ function submitOrder() {
 
   document.getElementById("confirmPage").style.display = "block";
   window.scrollTo(0, document.body.scrollHeight);
-}
+
 
 
   
 function generateOrderId() {
   // contoh id unik: ORD-<timestamp>-<random>
   return "ORD-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
-}  
+} 
   
   // =======TAB AKTIF===========
 function showTab(tabID) {
@@ -305,6 +305,7 @@ function confirmPayment(orderIdFromOrderPage) {
 
 </body>
 </html>
+
 
 
 

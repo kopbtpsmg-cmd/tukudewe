@@ -228,7 +228,8 @@ function submitOrder() {
   .then(() => {
     // tidak bisa baca response karena no-cors, kita anggap sukses
     // tampilkan halaman konfirmasi bayar (sesuai metode)
-    showPaymentConfirmation(orderId, payload.metode, payload.items.reduce((s,i)=>s+i.total,0));
+    const totalBelanja = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+showPaymentConfirmation(totalBelanja, metode);
   })
   .catch(err => {
     console.error("Gagal kirim order:", err);
@@ -236,11 +237,11 @@ function submitOrder() {
   });
 }
 function showPaymentConfirmation(total, metode) {
-  document.getElementById("confirmText").innerText =
-    "Harap bayar " + metode.toUpperCase() + " sebesar Rp " + total.toLocaleString();
+  document.getElementById("confirmText").innerHTML =
+    `Harap bayar <b>${metode.toUpperCase()}</b> sebesar <b>Rp ${total.toLocaleString()}</b>`;
 
   document.getElementById("confirmPage").style.display = "block";
-}
+  window.scrollTo(0, document.body.scrollHeight);
 
   
 function generateOrderId() {
@@ -302,6 +303,7 @@ function confirmPayment(orderIdFromOrderPage) {
 
 </body>
 </html>
+
 
 
 

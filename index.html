@@ -235,6 +235,12 @@ function submitOrder() {
     alert("Gagal mengirim pesanan! Cek koneksi.");
   });
 }
+function showPaymentConfirmation(total, metode) {
+  document.getElementById("confirmText").innerText =
+    "Harap bayar " + metode.toUpperCase() + " sebesar Rp " + total.toLocaleString();
+
+  document.getElementById("confirmPage").style.display = "block";
+}
 
   // tampilkan halaman konfirmasi
   document.getElementById("confirmText").innerHTML =
@@ -305,6 +311,7 @@ function confirmPayment(orderIdFromOrderPage) {
 
 </body>
 </html>
+
 
 
 
